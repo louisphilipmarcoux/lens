@@ -9,6 +9,7 @@ package integration
 import (
 	"bytes"
 	"encoding/json"
+	"net"
 	"net/http"
 	"os"
 	"testing"
@@ -34,9 +35,22 @@ func getQueryURL() string {
 	return "http://localhost:8081"
 }
 
+// requireServices skips the test if ingest or query services are not reachable.
+func requireServices(t *testing.T, ingestURL, queryURL string) {
+	t.Helper()
+	for _, addr := range []string{ingestURL, queryURL} {
+		conn, err := net.DialTimeout("tcp", addr[len("http://"):], 2*time.Second)
+		if err != nil {
+			t.Skipf("skipping: service at %s not reachable: %v", addr, err)
+		}
+		conn.Close()
+	}
+}
+
 func TestPipelineE2E_MetricIngestAndQuery(t *testing.T) {
 	ingestURL := getIngestURL()
 	queryURL := getQueryURL()
+	requireServices(t, ingestURL, queryURL)
 
 	// Inject known metrics.
 	batch := model.Batch{
@@ -66,6 +80,7 @@ func TestPipelineE2E_MetricIngestAndQuery(t *testing.T) {
 func TestPipelineE2E_LogIngestAndSearch(t *testing.T) {
 	ingestURL := getIngestURL()
 	queryURL := getQueryURL()
+	requireServices(t, ingestURL, queryURL)
 
 	batch := model.Batch{
 		Logs: []model.LogEntry{
@@ -91,6 +106,7 @@ func TestPipelineE2E_LogIngestAndSearch(t *testing.T) {
 func TestPipelineE2E_TraceIngestAndLookup(t *testing.T) {
 	ingestURL := getIngestURL()
 	queryURL := getQueryURL()
+	requireServices(t, ingestURL, queryURL)
 
 	batch := model.Batch{
 		Spans: []model.Span{

@@ -58,7 +58,26 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.24"
-      - name: Run integration tests
-        run: go test ./tests/integration/... -tags=integration -count=1
+      - name: Build services
+        run: make build
+      - name: Start ingest service
+        run: |
+          ./bin/lens-ingest &
+          sleep 2
         env:
-          CLICKHOUSE_URL: http://localhost:8123
+          LENS_CLICKHOUSE_DSN: "clickhouse://localhost:9000/default"
+          LENS_INGEST_HTTP_ADDR: ":8080"
+          LENS_INGEST_METRICS_ADDR: ":9091"
+      - name: Start query service
+        run: |
+          ./bin/lens-query &
+          sleep 2
+        env:
+          LENS_CLICKHOUSE_DSN: "clickhouse://localhost:9000/default"
+          LENS_QUERY_HTTP_ADDR: ":8081"
+          LENS_QUERY_METRICS_ADDR: ":9092"
+      - name: Run integration tests
+        run: go test ./tests/integration/... -tags=integration -count=1 -timeout=120s
+        env:
+          LENS_INGEST_URL: "http://localhost:8080"
+          LENS_QUERY_URL: "http://localhost:8081"
