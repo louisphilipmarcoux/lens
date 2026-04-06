@@ -1,0 +1,34 @@
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  agent:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.agent
+    volumes:
+      - /proc:/host/proc:ro
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    environment:
+      - LENS_PROC_ROOT=/host/proc
+      - LENS_BACKEND_URL=http://ingest:8080
+      - LENS_BUFFER_DIR=/var/lib/lens/buffer
+
+volumes:
+  clickhouse-data:

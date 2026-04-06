@@ -1,0 +1,13 @@
+{
+  "name": "lens-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lens Observability Platform — Dashboard",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src/",
+    "test": "vitest"
+  }
+}

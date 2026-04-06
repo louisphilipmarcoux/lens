@@ -1,0 +1,22 @@
+[project]
+name = "lens-anomaly"
+version = "0.1.0"
+description = "Lens Observability Platform — Anomaly Detection Service"
+requires-python = ">=3.11"
+dependencies = [
+    "statsmodels>=0.14",
+    "numpy>=1.26",
+    "grpcio>=1.60",
+    "protobuf>=4.25",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.1",
+    "ruff>=0.3",
+]
+
+[build-system]
+requires = ["setuptools>=69.0"]
+build-backend = "setuptools.backends._legacy:_Backend"
