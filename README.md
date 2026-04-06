@@ -1,6 +1,6 @@
 # Lens — Observability Platform
 
-[![CI](https://github.com/louispm/lens/actions/workflows/ci.yml/badge.svg)](https://github.com/louispm/lens/actions/workflows/ci.yml)
+[![CI](https://github.com/louisphilipmarcoux/lens/actions/workflows/ci.yml/badge.svg)](https://github.com/louisphilipmarcoux/lens/actions/workflows/ci.yml)
 
 A production-grade observability platform for metrics, logs, and traces — built from scratch in Go, TypeScript, and Python. Equivalent to a focused Datadog/Grafana.
 
