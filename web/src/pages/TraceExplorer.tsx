@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { searchTraces } from "../api";
 import type { TraceResult } from "../types";
+import { getCached, setCache } from "../stores/queryCache";
 
 function formatDuration(ns: number): string {
   if (ns < 1_000_000) return `${(ns / 1000).toFixed(0)}us`;
@@ -10,14 +11,15 @@ function formatDuration(ns: number): string {
 }
 
 export default function TraceExplorer() {
-  const [traces, setTraces] = useState<TraceResult[]>([]);
+  const cached = getCached<TraceResult[]>("traces");
+  const [traces, setTraces] = useState<TraceResult[]>(cached || []);
   const [service, setService] = useState("");
   const [operation, setOperation] = useState("");
   const [minDuration, setMinDuration] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!cached);
 
   const fetchTraces = async () => {
-    setLoading(true);
+    if (traces.length === 0) setLoading(true);
     try {
       const results = await searchTraces({
         service,
@@ -25,7 +27,9 @@ export default function TraceExplorer() {
         min_duration: minDuration,
         limit: 20,
       });
-      setTraces(results || []);
+      const r = results || [];
+      setTraces(r);
+      setCache("traces:" + service + operation + minDuration, r);
     } catch {
       setTraces([]);
     }

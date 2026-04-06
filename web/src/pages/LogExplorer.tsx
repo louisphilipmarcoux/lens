@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { searchLogs } from "../api";
 import type { LogRecord } from "../types";
+import { getCached, setCache } from "../stores/queryCache";
 
 const LEVELS = ["", "debug", "info", "warn", "error", "fatal"];
 const LEVEL_COLORS: Record<string, string> = {
@@ -12,18 +13,19 @@ const LEVEL_COLORS: Record<string, string> = {
 };
 
 export default function LogExplorer() {
-  const [records, setRecords] = useState<LogRecord[]>([]);
-  const [total, setTotal] = useState(0);
+  const cached = getCached<{ records: LogRecord[]; total: number }>("logs");
+  const [records, setRecords] = useState<LogRecord[]>(cached?.records || []);
+  const [total, setTotal] = useState(cached?.total || 0);
   const [service, setService] = useState("");
   const [level, setLevel] = useState("");
   const [search, setSearch] = useState("");
   const [tailMode, setTailMode] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!cached);
   const bottomRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   const fetchLogs = async () => {
-    setLoading(true);
+    if (records.length === 0) setLoading(true);
     try {
       const result = await searchLogs({
         service,
@@ -32,8 +34,11 @@ export default function LogExplorer() {
         limit: 100,
         order: "desc",
       });
-      setRecords(result.records || []);
-      setTotal(result.total || 0);
+      const r = result.records || [];
+      const t = result.total || 0;
+      setRecords(r);
+      setTotal(t);
+      setCache("logs:" + service + level + search, { records: r, total: t });
     } catch {
       // silently retry on next interval
     }
