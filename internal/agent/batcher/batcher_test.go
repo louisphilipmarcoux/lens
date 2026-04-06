@@ -19,7 +19,7 @@ func TestBatcherFlushOnSize(t *testing.T) {
 
 	output := func(data []byte) error {
 		var b model.Batch
-		json.Unmarshal(data, &b)
+		_ = json.Unmarshal(data, &b)
 		mu.Lock()
 		batches = append(batches, b)
 		mu.Unlock()
@@ -66,7 +66,7 @@ func TestBatcherMixedTypes(t *testing.T) {
 	var received model.Batch
 
 	output := func(data []byte) error {
-		json.Unmarshal(data, &received)
+		_ = json.Unmarshal(data, &received)
 		return nil
 	}
 

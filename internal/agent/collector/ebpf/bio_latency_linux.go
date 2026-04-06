@@ -48,8 +48,8 @@ func (c *BioLatencyCollector) Collect(ctx context.Context) ([]model.Metric, erro
 	// Read total I/O counts (index 0 = reads, 1 = writes).
 	var readTotal, writeTotal uint64
 	readKey, writeKey := uint32(0), uint32(1)
-	c.objs.BioCount.Lookup(&readKey, &readTotal)
-	c.objs.BioCount.Lookup(&writeKey, &writeTotal)
+	_ = c.objs.BioCount.Lookup(&readKey, &readTotal)
+	_ = c.objs.BioCount.Lookup(&writeKey, &writeTotal)
 
 	metrics = append(metrics,
 		model.Metric{Name: "ebpf.bio_reads_total", Tags: tags, Value: float64(readTotal), Timestamp: ts, Type: model.MetricCounter},

@@ -74,7 +74,9 @@ func (s *Server) Run(ctx context.Context) error {
 	}
 	go func() {
 		s.logger.Info("metrics server started", zap.String("addr", s.cfg.MetricsAddr))
-		metricsServer.ListenAndServe()
+		if err := metricsServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			s.logger.Error("metrics server error", zap.Error(err))
+		}
 	}()
 
 	// Mark ready.
@@ -95,8 +97,8 @@ func (s *Server) Run(ctx context.Context) error {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	httpServer.Shutdown(shutdownCtx)
-	metricsServer.Shutdown(shutdownCtx)
+	_ = httpServer.Shutdown(shutdownCtx)
+	_ = metricsServer.Shutdown(shutdownCtx)
 
 	return nil
 }

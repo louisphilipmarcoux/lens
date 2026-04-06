@@ -66,7 +66,7 @@ func (c *Client) InsertMetrics(ctx context.Context, metrics []model.Metric) erro
 
 	stmt, err := tx.PrepareContext(ctx, "INSERT INTO metrics (name, tags, value, type, timestamp) VALUES (?, ?, ?, ?, ?)")
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return fmt.Errorf("prepare: %w", err)
 	}
 	defer stmt.Close()
@@ -81,7 +81,7 @@ func (c *Client) InsertMetrics(ctx context.Context, metrics []model.Metric) erro
 		}
 
 		if _, err := stmt.ExecContext(ctx, m.Name, mapToClickhouse(m.Tags), m.Value, metricType, m.Timestamp); err != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			return fmt.Errorf("insert metric %s: %w", m.Name, err)
 		}
 	}
@@ -102,7 +102,7 @@ func (c *Client) InsertLogs(ctx context.Context, logs []model.LogEntry) error {
 
 	stmt, err := tx.PrepareContext(ctx, "INSERT INTO logs (timestamp, service, host, level, message, fields, source) VALUES (?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return fmt.Errorf("prepare: %w", err)
 	}
 	defer stmt.Close()
@@ -110,7 +110,7 @@ func (c *Client) InsertLogs(ctx context.Context, logs []model.LogEntry) error {
 	for _, l := range logs {
 		fields := stringifyFields(l.Fields)
 		if _, err := stmt.ExecContext(ctx, l.Timestamp, l.Service, l.Host, l.Level, l.Message, fields, l.Source); err != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			return fmt.Errorf("insert log: %w", err)
 		}
 	}
@@ -131,7 +131,7 @@ func (c *Client) InsertTraces(ctx context.Context, spans []model.Span) error {
 
 	stmt, err := tx.PrepareContext(ctx, "INSERT INTO traces (trace_id, span_id, parent_id, service, operation, start_time, duration_ns, status, tags, events) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return fmt.Errorf("prepare: %w", err)
 	}
 	defer stmt.Close()
@@ -154,7 +154,7 @@ func (c *Client) InsertTraces(ctx context.Context, spans []model.Span) error {
 			status, mapToClickhouse(s.Tags),
 			string(eventsJSON),
 		); err != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			return fmt.Errorf("insert span %s: %w", s.SpanID, err)
 		}
 	}

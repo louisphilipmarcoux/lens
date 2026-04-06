@@ -92,7 +92,11 @@ func (s *Server) Run(ctx context.Context) error {
 	metricsMux := http.NewServeMux()
 	metricsMux.Handle("/metrics", promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{}))
 	metricsServer := &http.Server{Addr: s.cfg.MetricsAddr, Handler: metricsMux}
-	go metricsServer.ListenAndServe()
+	go func() {
+		if err := metricsServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			s.logger.Error("metrics server error", zap.Error(err))
+		}
+	}()
 
 	s.logger.Info("query layer ready")
 
@@ -107,8 +111,8 @@ func (s *Server) Run(ctx context.Context) error {
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer shutdownCancel()
-	httpServer.Shutdown(shutdownCtx)
-	metricsServer.Shutdown(shutdownCtx)
+	_ = httpServer.Shutdown(shutdownCtx)
+	_ = metricsServer.Shutdown(shutdownCtx)
 
 	return nil
 }

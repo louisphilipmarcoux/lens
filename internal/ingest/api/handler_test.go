@@ -14,20 +14,6 @@ import (
 	"github.com/louispm/lens/internal/common/model"
 )
 
-// mockWriter captures data for testing without a real ClickHouse.
-type mockWriter struct {
-	metrics []model.Metric
-	logs    []model.LogEntry
-	spans   []model.Span
-}
-
-func (m *mockWriter) AddMetrics(metrics []model.Metric) { m.metrics = append(m.metrics, metrics...) }
-func (m *mockWriter) AddLogs(logs []model.LogEntry)      { m.logs = append(m.logs, logs...) }
-func (m *mockWriter) AddSpans(spans []model.Span)        { m.spans = append(m.spans, spans...) }
-
-// writerAdapter adapts mockWriter to work with Handler by wrapping the BatchWriter interface.
-// Since Handler takes *clickhouse.BatchWriter directly, we test at the HTTP level
-// using a real handler with a nil writer (checking status codes and parsing only).
 
 func TestHandleIngest(t *testing.T) {
 	handler := NewHandler(nil, 100000, zap.NewNop())

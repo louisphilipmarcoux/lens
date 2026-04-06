@@ -99,7 +99,7 @@ func (t *Tailer) tailFile(ctx context.Context, cfg TailerConfig) {
 		}
 
 		if offset > 0 {
-			f.Seek(offset, io.SeekStart)
+			_, _ = f.Seek(offset, io.SeekStart)
 		}
 
 		scanner := bufio.NewScanner(f)
@@ -178,17 +178,17 @@ func (t *Tailer) loadOffsets() {
 	if err != nil {
 		return
 	}
-	json.Unmarshal(data, &t.offsets)
+	_ = json.Unmarshal(data, &t.offsets)
 }
 
 func (t *Tailer) saveOffsets() {
 	if t.stateDir == "" {
 		return
 	}
-	os.MkdirAll(t.stateDir, 0755)
+	_ = os.MkdirAll(t.stateDir, 0755)
 	t.mu.Lock()
 	data, _ := json.Marshal(t.offsets)
 	t.mu.Unlock()
 	path := filepath.Join(t.stateDir, "tailer-state.json")
-	os.WriteFile(path, data, 0644)
+	_ = os.WriteFile(path, data, 0644)
 }

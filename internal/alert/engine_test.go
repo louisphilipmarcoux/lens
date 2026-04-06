@@ -23,12 +23,6 @@ func (m *mockNotifier) Notify(_ context.Context, alert Alert) error {
 	return nil
 }
 
-func (m *mockNotifier) count() int {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	return len(m.alerts)
-}
-
 func TestEvaluateCondition(t *testing.T) {
 	assert.True(t, evaluateCondition(95, ">", 90))
 	assert.False(t, evaluateCondition(85, ">", 90))

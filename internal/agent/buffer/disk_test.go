@@ -88,7 +88,7 @@ func TestDiskBufferDataLoss(t *testing.T) {
 	defer db.Close()
 
 	for i := 0; i < 50; i++ {
-		db.Write([]byte(`{"data":"some payload here to fill up buffer"}`))
+		_ = db.Write([]byte(`{"data":"some payload here to fill up buffer"}`))
 	}
 
 	// Should have recorded some data loss.

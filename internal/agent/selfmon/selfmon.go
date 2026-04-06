@@ -132,6 +132,6 @@ func (m *Monitor) SetReady() {
 // Stop gracefully shuts down the HTTP server.
 func (m *Monitor) Stop(ctx context.Context) {
 	if m.server != nil {
-		m.server.Shutdown(ctx)
+		_ = m.server.Shutdown(ctx)
 	}
 }

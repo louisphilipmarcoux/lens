@@ -39,7 +39,7 @@ func TestTailerReadsNewLines(t *testing.T) {
 	// Write lines to the log file.
 	f, err := os.OpenFile(logFile, os.O_APPEND|os.O_WRONLY, 0644)
 	require.NoError(t, err)
-	f.WriteString("line one\nline two\n")
+	_, _ = f.WriteString("line one\nline two\n")
 	f.Close()
 
 	// Wait for tailer to pick up lines.

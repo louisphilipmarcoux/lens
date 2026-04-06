@@ -179,7 +179,7 @@ func (e *Engine) evaluateRule(ctx context.Context, rule Rule) {
 			zap.String("severity", string(rule.Severity)),
 		)
 
-		go e.notifier.Notify(context.Background(), *alert)
+		go func() { _ = e.notifier.Notify(context.Background(), *alert) }()
 
 	} else {
 		delete(e.pending, fp)
@@ -192,7 +192,7 @@ func (e *Engine) evaluateRule(ctx context.Context, rule Rule) {
 			delete(e.active, fp)
 
 			e.logger.Info("alert resolved", zap.String("rule", rule.Name))
-			go e.notifier.Notify(context.Background(), *existing)
+			go func() { _ = e.notifier.Notify(context.Background(), *existing) }()
 		}
 	}
 }

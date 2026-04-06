@@ -78,9 +78,9 @@ func (h *WebSocketHandler) handleStream(w http.ResponseWriter, r *http.Request) 
 		case <-ticker.C:
 			samples := h.queryLatest(ctx, pq)
 			data, _ := json.Marshal(samples)
-			w.Write([]byte("data: "))
-			w.Write(data)
-			w.Write([]byte("\n\n"))
+			_, _ = w.Write([]byte("data: "))
+			_, _ = w.Write(data)
+			_, _ = w.Write([]byte("\n\n"))
 			flusher.Flush()
 		}
 	}

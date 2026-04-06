@@ -117,7 +117,7 @@ func (s *Shipper) send(ctx context.Context, data []byte) error {
 			lastErr = err
 			continue
 		}
-		io.Copy(io.Discard, resp.Body)
+		_, _ = io.Copy(io.Discard, resp.Body)
 		resp.Body.Close()
 
 		if resp.StatusCode >= 200 && resp.StatusCode < 300 {

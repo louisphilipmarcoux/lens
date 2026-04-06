@@ -39,7 +39,7 @@ func NewDiskBuffer(dir string, maxSegmentSize, maxTotalSize int64) (*DiskBuffer,
 	if len(segments) > 0 {
 		last := segments[len(segments)-1]
 		name := filepath.Base(last)
-		fmt.Sscanf(name, "segment-%06d.wal", &db.seqNum)
+		_, _ = fmt.Sscanf(name, "segment-%06d.wal", &db.seqNum)
 	}
 
 	// Create a new active segment.
@@ -147,7 +147,7 @@ func (db *DiskBuffer) Close() error {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 	if db.active != nil {
-		db.active.Sync()
+		_ = db.active.Sync()
 		return db.active.Close()
 	}
 	return nil
@@ -159,7 +159,7 @@ func (db *DiskBuffer) rotateSegment() error {
 
 func (db *DiskBuffer) rotateSegmentLocked() error {
 	if db.active != nil {
-		db.active.Sync()
+		_ = db.active.Sync()
 		db.active.Close()
 	}
 
