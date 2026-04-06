@@ -1,0 +1,149 @@
+# Portfolio Integration: Container Runtime + KV Store + Observability Platform
+#
+# Starts all three portfolio projects together:
+#   - 3-node Raft KV Store cluster
+#   - Vessel container runtime daemon
+#   - ClickHouse storage
+#   - Lens ingest + query + agent
+#
+# Usage:
+#   docker compose -f deploy/portfolio/docker-compose.yml up --build
+
+services:
+  # ── Storage ──────────────────────────────────────────────
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+      - CLICKHOUSE_PASSWORD=
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── Raft KV Store (3-node cluster) ──────────────────────
+  raft-1:
+    build:
+      context: ../../../raft
+      dockerfile: ../lens/deploy/portfolio/Dockerfile.raft
+    command: >
+      --id 1
+      --peers 127.0.0.1:5001,127.0.0.1:5002,127.0.0.1:5003
+      --data-dir /var/lib/raft/node1
+      --http 0.0.0.0:9091
+    ports:
+      - "5001:5001"
+      - "9191:9091"
+    volumes:
+      - raft-data-1:/var/lib/raft/node1
+    network_mode: host
+    environment:
+      - RUST_LOG=info
+
+  raft-2:
+    build:
+      context: ../../../raft
+      dockerfile: ../lens/deploy/portfolio/Dockerfile.raft
+    command: >
+      --id 2
+      --peers 127.0.0.1:5001,127.0.0.1:5002,127.0.0.1:5003
+      --data-dir /var/lib/raft/node2
+      --http 0.0.0.0:9092
+    ports:
+      - "5002:5002"
+      - "9192:9092"
+    volumes:
+      - raft-data-2:/var/lib/raft/node2
+    network_mode: host
+    environment:
+      - RUST_LOG=info
+
+  raft-3:
+    build:
+      context: ../../../raft
+      dockerfile: ../lens/deploy/portfolio/Dockerfile.raft
+    command: >
+      --id 3
+      --peers 127.0.0.1:5001,127.0.0.1:5002,127.0.0.1:5003
+      --data-dir /var/lib/raft/node3
+      --http 0.0.0.0:9093
+    ports:
+      - "5003:5003"
+      - "9193:9093"
+    volumes:
+      - raft-data-3:/var/lib/raft/node3
+    network_mode: host
+    environment:
+      - RUST_LOG=info
+
+  # ── Vessel Container Runtime ────────────────────────────
+  vessel:
+    build:
+      context: ../../../vessel
+      dockerfile: ../lens/deploy/portfolio/Dockerfile.vessel
+    privileged: true
+    volumes:
+      - vessel-socket:/run/vessel
+      - /proc:/host/proc:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup
+    environment:
+      - VESSEL_LOG_LEVEL=info
+
+  # ── Lens Observability Platform ─────────────────────────
+  lens-ingest:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.ingest
+    ports:
+      - "8080:8080"
+      - "9291:9091"
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    environment:
+      - LENS_CLICKHOUSE_DSN=clickhouse://default:@clickhouse:9000/default
+      - LENS_INGEST_HTTP_ADDR=:8080
+      - LENS_INGEST_METRICS_ADDR=:9091
+
+  lens-query:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.query
+    ports:
+      - "8081:8081"
+      - "9292:9092"
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    environment:
+      - LENS_CLICKHOUSE_DSN=clickhouse://default:@clickhouse:9000/default
+      - LENS_QUERY_HTTP_ADDR=:8081
+      - LENS_QUERY_METRICS_ADDR=:9092
+
+  lens-agent:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.agent
+    depends_on:
+      - lens-ingest
+    volumes:
+      - /proc:/host/proc:ro
+    environment:
+      - LENS_PROC_ROOT=/host/proc
+      - LENS_BACKEND_URL=http://lens-ingest:8080
+      - LENS_BUFFER_DIR=/var/lib/lens/buffer
+      - LENS_COLLECT_INTERVAL=10s
+      - LENS_HTTP_ADDR=:9090
+
+volumes:
+  clickhouse-data:
+  raft-data-1:
+  raft-data-2:
+  raft-data-3:
+  vessel-socket:
