@@ -5,16 +5,16 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 go build -o /bin/lens-agent ./cmd/agent
+RUN CGO_ENABLED=0 go build -o /bin/lens-ingest ./cmd/ingest
 
 FROM debian:bookworm-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /bin/lens-agent /usr/local/bin/lens-agent
+COPY --from=builder /bin/lens-ingest /usr/local/bin/lens-ingest
 
-RUN mkdir -p /var/lib/lens/buffer /etc/lens
+RUN mkdir -p /etc/lens
 
-EXPOSE 4317 9090
+EXPOSE 8080 9091
 
-ENTRYPOINT ["lens-agent"]
+ENTRYPOINT ["lens-ingest"]
