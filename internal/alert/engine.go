@@ -171,7 +171,8 @@ func (e *Engine) evaluateRule(ctx context.Context, rule Rule) {
 			Fingerprint: fp,
 		}
 		e.active[fp] = alert
-		e.history = append(e.history, *alert)
+		alertCopy := *alert
+		e.history = append(e.history, alertCopy)
 
 		e.logger.Warn("alert firing",
 			zap.String("rule", rule.Name),
@@ -179,7 +180,7 @@ func (e *Engine) evaluateRule(ctx context.Context, rule Rule) {
 			zap.String("severity", string(rule.Severity)),
 		)
 
-		go func() { _ = e.notifier.Notify(context.Background(), *alert) }()
+		go func(a Alert) { _ = e.notifier.Notify(context.Background(), a) }(alertCopy)
 
 	} else {
 		delete(e.pending, fp)
@@ -188,11 +189,12 @@ func (e *Engine) evaluateRule(ctx context.Context, rule Rule) {
 			now := time.Now()
 			existing.State = StateResolved
 			existing.ResolvedAt = &now
-			e.history = append(e.history, *existing)
+			resolvedCopy := *existing
+			e.history = append(e.history, resolvedCopy)
 			delete(e.active, fp)
 
 			e.logger.Info("alert resolved", zap.String("rule", rule.Name))
-			go func() { _ = e.notifier.Notify(context.Background(), *existing) }()
+			go func(a Alert) { _ = e.notifier.Notify(context.Background(), a) }(resolvedCopy)
 		}
 	}
 }
