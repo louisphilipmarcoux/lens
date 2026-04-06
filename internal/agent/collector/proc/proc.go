@@ -47,6 +47,11 @@ func NewRegistry(procRoot string, logger *zap.Logger) *Registry {
 	return r
 }
 
+// Register adds an external collector to the registry.
+func (r *Registry) Register(c Collector) {
+	r.collectors = append(r.collectors, c)
+}
+
 // CollectAll runs all collectors and returns aggregated metrics.
 func (r *Registry) CollectAll(ctx context.Context) []model.Metric {
 	var (

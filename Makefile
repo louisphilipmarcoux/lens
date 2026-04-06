@@ -28,6 +28,9 @@ vet:
 proto:
 	./scripts/proto-gen.sh
 
+bpf-gen:
+	./scripts/bpf-gen.sh
+
 dev:
 	docker compose -f deploy/docker-compose.yml up --build
 

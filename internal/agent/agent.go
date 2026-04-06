@@ -2,12 +2,14 @@ package agent
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"go.uber.org/zap"
 
 	"github.com/louispm/lens/internal/agent/batcher"
 	"github.com/louispm/lens/internal/agent/buffer"
+	ebpfcollector "github.com/louispm/lens/internal/agent/collector/ebpf"
 	"github.com/louispm/lens/internal/agent/collector/logs"
 	"github.com/louispm/lens/internal/agent/collector/otel"
 	"github.com/louispm/lens/internal/agent/collector/proc"
@@ -58,6 +60,15 @@ func (a *Agent) Run(ctx context.Context) error {
 
 	// Initialize /proc collectors.
 	registry := proc.NewRegistry(a.cfg.ProcRoot, a.logger)
+
+	// Register eBPF collectors (Linux only; no-op on other platforms).
+	if a.cfg.EBPFEnabled {
+		hostname, _ := os.Hostname()
+		for _, c := range ebpfcollector.Collectors(hostname) {
+			registry.Register(c)
+			a.logger.Info("registered eBPF collector", zap.String("name", c.Name()))
+		}
+	}
 
 	// Initialize log tailer.
 	var tailerConfigs []logs.TailerConfig

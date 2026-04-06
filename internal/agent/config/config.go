@@ -12,6 +12,7 @@ import (
 type Config struct {
 	ProcRoot        string          `yaml:"proc_root"`
 	CollectInterval time.Duration   `yaml:"collect_interval"`
+	EBPFEnabled     bool            `yaml:"ebpf_enabled"`
 	LogFiles        []LogFileConfig `yaml:"log_files"`
 	OTelGRPCAddr    string          `yaml:"otel_grpc_addr"`
 	Backend         BackendConfig   `yaml:"backend"`
@@ -132,6 +133,9 @@ func applyEnvOverrides(cfg *Config) {
 	}
 	if v := os.Getenv("LENS_HTTP_ADDR"); v != "" {
 		cfg.HTTPAddr = v
+	}
+	if v := os.Getenv("LENS_EBPF_ENABLED"); v == "true" || v == "1" {
+		cfg.EBPFEnabled = true
 	}
 }
 
