@@ -28,21 +28,20 @@ services:
       retries: 10
 
   # ── Raft KV Store (3-node cluster) ──────────────────────
+  # Uses host networking so all nodes bind to 127.0.0.1 and
+  # can reach each other directly (same as local development).
   raft-1:
     build:
       context: ../../../raft
       dockerfile: ../lens/deploy/portfolio/Dockerfile.raft
     command: >
       --id 1
-      --peers 127.0.0.1:5001,127.0.0.1:5002,127.0.0.1:5003
+      --peers 1=http://127.0.0.1:5001,2=http://127.0.0.1:5002,3=http://127.0.0.1:5003
       --data-dir /var/lib/raft/node1
-      --http 0.0.0.0:9091
-    ports:
-      - "5001:5001"
-      - "9191:9091"
+      --http 127.0.0.1:9191
+    network_mode: host
     volumes:
       - raft-data-1:/var/lib/raft/node1
-    network_mode: host
     environment:
       - RUST_LOG=info
 
@@ -52,15 +51,12 @@ services:
       dockerfile: ../lens/deploy/portfolio/Dockerfile.raft
     command: >
       --id 2
-      --peers 127.0.0.1:5001,127.0.0.1:5002,127.0.0.1:5003
+      --peers 1=http://127.0.0.1:5001,2=http://127.0.0.1:5002,3=http://127.0.0.1:5003
       --data-dir /var/lib/raft/node2
-      --http 0.0.0.0:9092
-    ports:
-      - "5002:5002"
-      - "9192:9092"
+      --http 127.0.0.1:9192
+    network_mode: host
     volumes:
       - raft-data-2:/var/lib/raft/node2
-    network_mode: host
     environment:
       - RUST_LOG=info
 
@@ -70,15 +66,12 @@ services:
       dockerfile: ../lens/deploy/portfolio/Dockerfile.raft
     command: >
       --id 3
-      --peers 127.0.0.1:5001,127.0.0.1:5002,127.0.0.1:5003
+      --peers 1=http://127.0.0.1:5001,2=http://127.0.0.1:5002,3=http://127.0.0.1:5003
       --data-dir /var/lib/raft/node3
-      --http 0.0.0.0:9093
-    ports:
-      - "5003:5003"
-      - "9193:9093"
+      --http 127.0.0.1:9193
+    network_mode: host
     volumes:
       - raft-data-3:/var/lib/raft/node3
-    network_mode: host
     environment:
       - RUST_LOG=info
 
