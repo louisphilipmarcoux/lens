@@ -133,9 +133,11 @@ func (e *TraceEngine) SearchTraces(ctx context.Context, q *TraceSearchQuery) ([]
 
 	// Find distinct trace IDs matching criteria.
 	querySQL := fmt.Sprintf(`
-		SELECT DISTINCT trace_id
-		FROM traces		WHERE %s
-		ORDER BY min(start_time) DESC
+		SELECT trace_id
+		FROM traces
+		WHERE %s
+		GROUP BY trace_id
+		ORDER BY max(start_time) DESC
 		LIMIT %d
 	`, whereClause, limit)
 
