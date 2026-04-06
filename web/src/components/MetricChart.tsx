@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   LineChart,
   Line,
@@ -8,8 +8,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { streamMetrics } from "../api";
-import type { MetricSample } from "../types";
+import { subscribe, getData } from "../stores/metricStore";
 
 interface Props {
   title: string;
@@ -17,7 +16,6 @@ interface Props {
   interval?: string;
   color?: string;
   unit?: string;
-  maxPoints?: number;
 }
 
 export default function MetricChart({
@@ -26,38 +24,13 @@ export default function MetricChart({
   interval = "10s",
   color = "#3b82f6",
   unit = "",
-  maxPoints = 60,
 }: Props) {
-  const [data, setData] = useState<{ time: string; value: number }[]>([]);
-  const [connected, setConnected] = useState(false);
-  const esRef = useRef<EventSource | null>(null);
+  const [, forceUpdate] = useState(0);
+  const onData = useCallback(() => forceUpdate((n) => n + 1), []);
 
-  useEffect(() => {
-    const es = streamMetrics(
-      query,
-      interval,
-      (samples: MetricSample[]) => {
-        setConnected(true);
-        if (samples && samples.length > 0) {
-          const avg =
-            samples.reduce((s, m) => s + m.value, 0) / samples.length;
-          setData((prev) => {
-            const next = [
-              ...prev,
-              {
-                time: new Date().toLocaleTimeString(),
-                value: Math.round(avg * 100) / 100,
-              },
-            ];
-            return next.slice(-maxPoints);
-          });
-        }
-      },
-      () => setConnected(false)
-    );
-    esRef.current = es;
-    return () => es.close();
-  }, [query, interval, maxPoints]);
+  useEffect(() => subscribe(query, interval, onData), [query, interval, onData]);
+
+  const { data, connected } = getData(query, interval);
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4">
