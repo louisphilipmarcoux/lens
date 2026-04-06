@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+}
+
+/* Flame graph styles */
+.flame-bar {
+  transition: opacity 0.15s ease;
+}
+.flame-bar:hover {
+  opacity: 0.85;
+}
