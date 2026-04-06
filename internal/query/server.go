@@ -73,18 +73,23 @@ func (s *Server) Run(ctx context.Context) error {
 	handler.RegisterRoutes(mux)
 	wsHandler.RegisterRoutes(mux)
 
-	// Apply middleware.
+	// Apply middleware — skip timeout for SSE stream (it strips http.Flusher).
 	limiter := middleware.NewRateLimiter(s.cfg.RateLimit)
-	var httpHandler http.Handler = mux
-	httpHandler = middleware.RateLimit(limiter)(httpHandler)
-	httpHandler = middleware.Timeout(s.cfg.QueryTimeout)(httpHandler)
+	queryTimeout := s.cfg.QueryTimeout
+	httpHandler := middleware.RateLimit(limiter)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/stream" {
+			mux.ServeHTTP(w, r)
+			return
+		}
+		middleware.Timeout(queryTimeout)(mux).ServeHTTP(w, r)
+	}))
 
 	// Start HTTP server.
 	httpServer := &http.Server{
 		Addr:         s.cfg.HTTPAddr,
 		Handler:      httpHandler,
 		ReadTimeout:  30 * time.Second,
-		WriteTimeout: s.cfg.QueryTimeout + 5*time.Second,
+		WriteTimeout: 0, // disabled — SSE streams are long-lived
 		IdleTimeout:  120 * time.Second,
 	}
 
