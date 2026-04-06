@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import LogExplorer from "./pages/LogExplorer";
@@ -12,10 +12,15 @@ function KeepAlive({ visible, children }: { visible: boolean; children: React.Re
 export default function App() {
   const { pathname } = useLocation();
 
+  if (pathname === "/") return <Navigate to="/dashboard" replace />;
+
+  // Match /traces/<traceId> for detail view.
+  const traceMatch = pathname.match(/^\/traces\/(.+)$/);
+  const traceId = traceMatch ? traceMatch[1] : null;
+
   return (
     <Layout>
-      {/* Main pages stay mounted — hidden via CSS, never unmounted */}
-      <KeepAlive visible={pathname === "/dashboard" || pathname === "/"}>
+      <KeepAlive visible={pathname === "/dashboard"}>
         <Dashboard />
       </KeepAlive>
       <KeepAlive visible={pathname === "/logs"}>
@@ -24,13 +29,7 @@ export default function App() {
       <KeepAlive visible={pathname === "/traces"}>
         <TraceExplorer />
       </KeepAlive>
-
-      {/* Trace detail is dynamic — uses normal routing */}
-      <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/traces/:traceId" element={<TraceDetail />} />
-        <Route path="*" element={null} />
-      </Routes>
+      {traceId && <TraceDetail traceId={traceId} />}
     </Layout>
   );
 }

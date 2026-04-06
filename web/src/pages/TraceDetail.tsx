@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
 import { getTrace } from "../api";
 import FlameGraph from "../components/FlameGraph";
 import type { TraceResult, TraceSpan } from "../types";
@@ -10,8 +9,7 @@ function formatDuration(ns: number): string {
   return `${(ns / 1_000_000_000).toFixed(2)}s`;
 }
 
-export default function TraceDetail() {
-  const { traceId } = useParams<{ traceId: string }>();
+export default function TraceDetail({ traceId }: { traceId: string }) {
   const [trace, setTrace] = useState<TraceResult | null>(null);
   const [selectedSpan, setSelectedSpan] = useState<TraceSpan | null>(null);
   const [loading, setLoading] = useState(true);
