@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS metrics (
 ) ENGINE = ReplacingMergeTree(received_at)
 PARTITION BY toYYYYMMDD(timestamp)
 ORDER BY (name, cityHash64(toString(tags)), timestamp)
-TTL timestamp + INTERVAL 30 DAY
+TTL toDateTime(timestamp) + INTERVAL 30 DAY
 SETTINGS index_granularity = 8192
 `
 
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS logs (
 ) ENGINE = ReplacingMergeTree(received_at)
 PARTITION BY toYYYYMMDD(timestamp)
 ORDER BY (service, level, timestamp)
-TTL timestamp + INTERVAL 14 DAY
+TTL toDateTime(timestamp) + INTERVAL 14 DAY
 SETTINGS index_granularity = 8192
 `
 
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS traces (
 ) ENGINE = ReplacingMergeTree(received_at)
 PARTITION BY toYYYYMMDD(start_time)
 ORDER BY (service, trace_id, start_time)
-TTL start_time + INTERVAL 7 DAY
+TTL toDateTime(start_time) + INTERVAL 7 DAY
 SETTINGS index_granularity = 8192
 `
 
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS metrics_5m (
 ) ENGINE = SummingMergeTree()
 PARTITION BY toYYYYMMDD(timestamp)
 ORDER BY (name, cityHash64(toString(tags)), timestamp)
-TTL timestamp + INTERVAL 90 DAY
+TTL toDateTime(timestamp) + INTERVAL 90 DAY
 SETTINGS index_granularity = 8192
 `
 
