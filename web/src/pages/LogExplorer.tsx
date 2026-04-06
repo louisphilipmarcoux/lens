@@ -27,7 +27,6 @@ export default function LogExplorer() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   const fetchLogs = async () => {
-    if (lastRecords.length === 0) setLoading(true);
     try {
       const result = await searchLogs({
         service,

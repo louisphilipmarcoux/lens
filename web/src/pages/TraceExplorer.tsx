@@ -20,7 +20,6 @@ export default function TraceExplorer() {
   const [loading, setLoading] = useState(lastTraces.length === 0);
 
   const fetchTraces = async () => {
-    if (lastTraces.length === 0) setLoading(true);
     try {
       const results = await searchTraces({
         service,
