@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { searchTraces } from "../api";
 import type { TraceResult } from "../types";
-import { getCached, setCache } from "../stores/queryCache";
 
 function formatDuration(ns: number): string {
   if (ns < 1_000_000) return `${(ns / 1000).toFixed(0)}us`;
@@ -10,16 +9,18 @@ function formatDuration(ns: number): string {
   return `${(ns / 1_000_000_000).toFixed(2)}s`;
 }
 
+// Module-level cache — survives component remounts.
+let lastTraces: TraceResult[] = [];
+
 export default function TraceExplorer() {
-  const cached = getCached<TraceResult[]>("traces");
-  const [traces, setTraces] = useState<TraceResult[]>(cached || []);
+  const [traces, setTraces] = useState<TraceResult[]>(lastTraces);
   const [service, setService] = useState("");
   const [operation, setOperation] = useState("");
   const [minDuration, setMinDuration] = useState("");
-  const [loading, setLoading] = useState(!cached);
+  const [loading, setLoading] = useState(lastTraces.length === 0);
 
   const fetchTraces = async () => {
-    if (traces.length === 0) setLoading(true);
+    if (lastTraces.length === 0) setLoading(true);
     try {
       const results = await searchTraces({
         service,
@@ -28,8 +29,8 @@ export default function TraceExplorer() {
         limit: 20,
       });
       const r = results || [];
+      lastTraces = r;
       setTraces(r);
-      setCache("traces:" + service + operation + minDuration, r);
     } catch {
       setTraces([]);
     }
