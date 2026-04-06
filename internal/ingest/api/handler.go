@@ -80,7 +80,7 @@ func (h *Handler) handleIngest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusAccepted)
-	w.Write([]byte(`{"status":"accepted"}`))
+	_, _ = w.Write([]byte(`{"status":"accepted"}`))
 }
 
 // handleIngestMetrics accepts metrics only.
@@ -96,7 +96,7 @@ func (h *Handler) handleIngestMetrics(w http.ResponseWriter, r *http.Request) {
 
 	h.writer.AddMetrics(metrics)
 	w.WriteHeader(http.StatusAccepted)
-	w.Write([]byte(`{"status":"accepted"}`))
+	_, _ = w.Write([]byte(`{"status":"accepted"}`))
 }
 
 // handleIngestLogs accepts logs only.
@@ -112,7 +112,7 @@ func (h *Handler) handleIngestLogs(w http.ResponseWriter, r *http.Request) {
 
 	h.writer.AddLogs(logs)
 	w.WriteHeader(http.StatusAccepted)
-	w.Write([]byte(`{"status":"accepted"}`))
+	_, _ = w.Write([]byte(`{"status":"accepted"}`))
 }
 
 // handleIngestTraces accepts spans only.
@@ -128,23 +128,23 @@ func (h *Handler) handleIngestTraces(w http.ResponseWriter, r *http.Request) {
 
 	h.writer.AddSpans(spans)
 	w.WriteHeader(http.StatusAccepted)
-	w.Write([]byte(`{"status":"accepted"}`))
+	_, _ = w.Write([]byte(`{"status":"accepted"}`))
 }
 
 func (h *Handler) handleHealth(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"status":"ok"}`))
+	_, _ = w.Write([]byte(`{"status":"ok"}`))
 }
 
 func (h *Handler) handleReady(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if h.ready.Load() {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"ready"}`))
+		_, _ = w.Write([]byte(`{"status":"ready"}`))
 	} else {
 		w.WriteHeader(http.StatusServiceUnavailable)
-		w.Write([]byte(`{"status":"not ready"}`))
+		_, _ = w.Write([]byte(`{"status":"not ready"}`))
 	}
 }
 

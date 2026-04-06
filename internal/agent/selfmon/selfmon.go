@@ -95,15 +95,15 @@ func (m *Monitor) Start() error {
 	mux.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"ok"}`))
+		_, _ = w.Write([]byte(`{"status":"ok"}`))
 	})
 	mux.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
 		if m.ready.Load() {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"status":"ready"}`))
+			_, _ = w.Write([]byte(`{"status":"ready"}`))
 		} else {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			w.Write([]byte(`{"status":"not ready"}`))
+			_, _ = w.Write([]byte(`{"status":"not ready"}`))
 		}
 	})
 
