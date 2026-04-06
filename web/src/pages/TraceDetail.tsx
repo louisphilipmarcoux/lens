@@ -16,15 +16,18 @@ export default function TraceDetail({ traceId }: { traceId: string }) {
 
   useEffect(() => {
     if (!traceId) return;
+    let cancelled = false;
     setLoading(true);
-    getTrace(traceId)
-      .then((t) => setTrace(t))
-      .catch(() => setTrace(null))
-      .finally(() => setLoading(false));
+    fetch(`/api/v1/traces/${traceId}`)
+      .then((res) => res.json())
+      .then((t) => { if (!cancelled) setTrace(t); })
+      .catch(() => { if (!cancelled) setTrace(null); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [traceId]);
 
-  if (loading) {
-    return <div className="text-center text-gray-400 py-12">Loading...</div>;
+  if (loading && !trace) {
+    return <div className="text-center text-gray-400 py-12">Loading trace {traceId}...</div>;
   }
 
   if (!trace || !trace.root) {
