@@ -168,8 +168,7 @@ func (e *MetricEngine) buildSQL(q *PromQLQuery) (string, []any) {
 			%s(value) AS val,
 			name,
 			toString(tags) AS tags_str
-		FROM metrics FINAL
-		WHERE %s
+		FROM metrics		WHERE %s
 		GROUP BY ts, %s
 		ORDER BY ts ASC
 	`, stepSeconds, aggFunc, strings.Join(where, " AND "), groupByClause)
@@ -199,8 +198,7 @@ func (e *MetricEngine) buildInstantSQL(q *PromQLQuery) (string, []any) {
 		SELECT
 			argMax(value, timestamp) AS val,
 			toString(tags) AS tags_str
-		FROM metrics FINAL
-		WHERE %s
+		FROM metrics		WHERE %s
 		GROUP BY tags
 		ORDER BY val DESC
 	`, strings.Join(where, " AND "))

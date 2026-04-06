@@ -74,8 +74,7 @@ func (e *LogEngine) Search(ctx context.Context, q *LogQuery) ([]LogRecord, int64
 
 	querySQL := fmt.Sprintf(`
 		SELECT timestamp, service, host, level, message, toString(fields), source
-		FROM logs FINAL
-		WHERE %s
+		FROM logs		WHERE %s
 		ORDER BY timestamp %s
 		LIMIT %d OFFSET %d
 	`, whereClause, order, limit, q.Offset)
@@ -114,8 +113,7 @@ func (e *LogEngine) Aggregate(ctx context.Context, q *LogQuery, groupBy string) 
 
 	querySQL := fmt.Sprintf(`
 		SELECT %s AS key, count() AS cnt
-		FROM logs FINAL
-		WHERE %s
+		FROM logs		WHERE %s
 		GROUP BY key
 		ORDER BY cnt DESC
 		LIMIT 100

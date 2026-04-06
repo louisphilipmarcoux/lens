@@ -60,8 +60,7 @@ func (e *TraceEngine) GetTrace(ctx context.Context, traceID string) (*TraceResul
 	rows, err := e.db.QueryContext(ctx, `
 		SELECT trace_id, span_id, parent_id, service, operation,
 		       start_time, duration_ns, status, toString(tags), events
-		FROM traces FINAL
-		WHERE trace_id = $1
+		FROM traces		WHERE trace_id = $1
 		ORDER BY start_time ASC
 	`, traceID)
 	if err != nil {
@@ -135,8 +134,7 @@ func (e *TraceEngine) SearchTraces(ctx context.Context, q *TraceSearchQuery) ([]
 	// Find distinct trace IDs matching criteria.
 	querySQL := fmt.Sprintf(`
 		SELECT DISTINCT trace_id
-		FROM traces FINAL
-		WHERE %s
+		FROM traces		WHERE %s
 		ORDER BY min(start_time) DESC
 		LIMIT %d
 	`, whereClause, limit)
